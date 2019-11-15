@@ -23,7 +23,9 @@ export class FakeRestServiceService {
   public getDataFromServer() {
     return this.getParam().pipe(
       first(),
-      tap((receivedData: string) => this.makeSomeAction(receivedData))
+      tap((receivedData: string) => {
+        return this.makeSomeAction(receivedData);
+      })
     );
   }
 
