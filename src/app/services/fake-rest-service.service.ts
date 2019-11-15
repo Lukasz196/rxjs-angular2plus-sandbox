@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {AsyncSubject, Observable, of} from 'rxjs';
-import {first, take, tap} from 'rxjs/operators';
+import {AsyncSubject, combineLatest, Observable, of} from 'rxjs';
+import {first, map, take, tap} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
 
 @Injectable({
@@ -18,6 +18,19 @@ export class FakeRestServiceService {
 
   public getStringDataWithParam(param: string): Observable<string> {
     return of(`fakeData with param = ${param}`).pipe(first());
+  }
+
+  public getComplexData(): Observable<string> {
+    return combineLatest([
+      this.getParam(),
+      this.getStringDataWithParam('param')
+    ]).pipe(
+      map((combinedData: [string, string]) => this.mapComplexData(combinedData))
+    );
+  }
+
+  private mapComplexData([param, dataWithParam]) {
+    return '' + param + dataWithParam;
   }
 
   public getDataFromServer() {
@@ -47,4 +60,5 @@ export class FakeRestServiceService {
   private makeSomeAction(receivedData: string) {
     console.log(receivedData);
   }
+
 }
