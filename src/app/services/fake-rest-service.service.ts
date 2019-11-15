@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
-import {Observable, of, Subject} from "rxjs";
-import {first, tap} from "rxjs/operators";
-import {HttpClient} from "@angular/common/http";
+import {AsyncSubject, Observable, of} from 'rxjs';
+import {first, take, tap} from 'rxjs/operators';
+import {HttpClient} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -21,18 +21,23 @@ export class FakeRestServiceService {
   }
 
   public getDataFromServer() {
-    return this.getParam()
-      .pipe(tap(receivedData => this.makeSomeAction(receivedData)));
+    return this.getParam().pipe(
+      first(),
+      tap((receivedData: string) => this.makeSomeAction(receivedData))
+    );
   }
 
   public getDataFromServer2() {
-    const obs = new Subject();
-    const that = this;
-    this.getParam().subscribe(function (receivedData: string) {
-      that.makeSomeAction(receivedData);
-      obs.next(receivedData);
-      this.complete();
-    });
+    const obs = new AsyncSubject();
+    this.getParam()
+      .pipe(take(1))
+      .subscribe((receivedData: string) => {
+        this.makeSomeAction(receivedData);
+        obs.next(receivedData);
+        obs.complete();
+      }, (error) => {
+        obs.error(error);
+      });
     return obs.asObservable();
   }
 
